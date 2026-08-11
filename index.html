@@ -261,7 +261,9 @@ td.gets b{color:var(--stamp-deep)}
       <p class="eyebrow">Search</p>
       <h2>One role, as many countries as you like</h2>
       <p class="sub">LinkedIn accepts a single location. If you can work in six countries, that is six
-        separate searches you have to remember to re-run. This is one.</p>
+        separate searches you have to remember to re-run. This is one. Any role, not just engineering
+        — project and delivery managers, scrum masters, recruiters and analysts hit the same wall,
+        because the problem is the location box, not the job title.</p>
 
       <div class="hunt">
         <label class="fld"><span>Role or skill</span>
@@ -481,8 +483,11 @@ const COLLIDE = [
   ["Niger","Lagos State, <b>Nigeria</b>",""]
 ];
 
-const KW = ["Java Spring Boot","Golang",".NET C#","Angular","React","Node.js TypeScript",
-  "Python","Data engineer","DevOps"];
+/* Spans disciplines on purpose. Nothing in this tool is engineering specific,
+   and an all developer list reads as though the rest of us are not invited. */
+const KW = ["Project manager","Scrum master","Delivery manager","Engineering manager",
+  "Product manager","Business analyst","Technical recruiter","QA engineer",
+  "Java Spring Boot","Golang","React","Data engineer","DevOps"];
 const NEG = ["clearance","W2","must be authorized","sponsorship","onsite"];
 const PRESETS = [
   ["Contractor via Deel or EOR",'"through Deel" OR "Employer of Record" OR "contractor agreement"'],
@@ -591,7 +596,7 @@ function sync(){
   mrz(); renderWhere(); writeState();
   const q = ATS.map(d => 'site:' + d).join(' OR ');
   $('atsGo').href = 'https://www.google.com/search?tbs=qdr:m&q=' +
-    encodeURIComponent('(' + q + ') ' + ($('kw').value.trim() || 'engineer') + ' remote');
+    encodeURIComponent('(' + q + ') ' + ($('kw').value.trim() || 'manager') + ' remote');
 }
 
 $('geoAdd').innerHTML = '<option value="">Add a country…</option>' +

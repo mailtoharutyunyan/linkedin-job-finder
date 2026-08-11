@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{width:1080px;height:1350px;background:#0E1622;color:#E3E4D8;overflow:hidden;
+    font-family:"Archivo",sans-serif;position:relative}
+  body::before{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(102deg,transparent 0 4px,rgba(233,166,196,.03) 4px 5px),
+      radial-gradient(105% 60% at 92% -6%,rgba(142,59,98,.32),transparent 60%)}
+  .in{position:relative;padding:64px 62px 56px;height:100%;display:flex;flex-direction:column}
+  .crest{display:flex;align-items:center;gap:14px;font-family:"Space Mono",monospace;
+    font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:#8E99AC;margin-bottom:40px}
+  .crest b{color:#E3E4D8;font-weight:400}
+  .crest .s{flex:1;height:1px;background:#253044}
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:66px;line-height:1.03;
+    letter-spacing:-.02em;margin-bottom:18px}
+  h1 em{font-style:italic;color:#E9A6C4}
+  .stat{font-size:23px;color:#8E99AC;line-height:1.45;margin-bottom:38px;max-width:34ch}
+  .stat b{color:#E3E4D8;font-weight:600}
+  .hd{font-family:"Space Mono",monospace;font-size:14px;letter-spacing:.18em;
+    text-transform:uppercase;color:#8E99AC;padding-bottom:13px;border-bottom:1px solid #253044;
+    display:flex;justify-content:space-between}
+  ul{list-style:none;padding:0;margin:0}
+  li{display:flex;align-items:baseline;gap:16px;padding:22px 0;border-bottom:1px solid #1b2434;
+    font-size:28px}
+  li .a{font-family:"Space Mono",monospace;font-weight:700;color:#E3E4D8;width:150px;
+    flex-shrink:0;font-size:24px}
+  li .arr{color:#4a5568;font-size:19px;flex-shrink:0}
+  li .b{color:#E9A6C4;font-weight:500}
+  .foot{margin-top:auto;padding-top:34px;display:flex;justify-content:space-between;
+    align-items:flex-end;gap:24px}
+  .foot p{font-size:21px;color:#8E99AC;line-height:1.45;max-width:30ch}
+  .foot p b{color:#86C4A4;font-weight:600}
+  .foot .url{font-family:"Space Mono",monospace;font-size:16px;color:#E9A6C4;text-align:right;
+    line-height:1.6;flex-shrink:0}
+</style></head>
+<body><div class="in">
+  <div class="crest"><b>LinkedIn Job Finder</b><span class="s"></span><span>Free · no account</span></div>
+
+  <h1>I tested 39 country names in LinkedIn job search. <em>None</em> returned the country.</h1>
+  <p class="stat">Nine of them search a <b>completely different country</b>. The other thirty quietly
+    shrink you to one city and never mention it.</p>
+
+  <div class="hd"><span>You type</span><span>It actually searches</span></div>
+  <ul>
+    <li><span class="a">Armenia</span><span class="arr">▸</span><span class="b">Colombia</span></li>
+    <li><span class="a">Georgia</span><span class="arr">▸</span><span class="b">United States</span></li>
+    <li><span class="a">Lebanon</span><span class="arr">▸</span><span class="b">Tennessee, USA</span></li>
+    <li><span class="a">Cuba</span><span class="arr">▸</span><span class="b">Brazil</span></li>
+    <li><span class="a">Malta</span><span class="arr">▸</span><span class="b">Illinois, USA</span></li>
+    <li><span class="a">Turkey</span><span class="arr">▸</span><span class="b">North Carolina, USA</span></li>
+    <li><span class="a">Guinea</span><span class="arr">▸</span><span class="b">Papua New Guinea</span></li>
+    <li><span class="a">Liberia</span><span class="arr">▸</span><span class="b">Costa Rica</span></li>
+    <li><span class="a">Niger</span><span class="arr">▸</span><span class="b">Nigeria</span></li>
+  </ul>
+
+  <div class="foot">
+    <p>Searching by the correct location id turned 1,385 wrong results into <b>83 real ones.</b></p>
+    <div class="url">mailtoharutyunyan<br>.github.io/<br>linkedin-job-finder</div>
+  </div>
+</div></body></html>

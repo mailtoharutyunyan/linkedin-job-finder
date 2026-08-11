@@ -114,6 +114,14 @@ comes back; send the link and someone else gets your setup, not a blank form.
 **Skips the boards.** One button searches Lever, Greenhouse, Ashby, Workable, Teamtailor, Recruitee
 and SmartRecruiters at once — jobs land there before aggregators index them.
 
+### Works for any role
+
+Nothing here is engineering specific. The broken location box hurts project managers, delivery
+managers, scrum masters, product managers, business analysts, recruiters and QA exactly as much as it
+hurts developers, because the bug is in the location field and has nothing to do with the job title.
+Recruiters get one extra use out of it, since the same search finds where a role is being advertised
+across seven hiring platforms at once.
+
 ### Deliberately kept simple
 
 Two fields and one button. Everything else is behind a single **Refine** disclosure, closed by
