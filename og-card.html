@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{width:1200px;height:630px;background:#0E1622;color:#E3E4D8;overflow:hidden;
+    font-family:"Archivo",sans-serif;position:relative}
+  body::before{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(102deg,transparent 0 4px,rgba(233,166,196,.03) 4px 5px),
+      radial-gradient(110% 85% at 90% -8%,rgba(142,59,98,.30),transparent 62%)}
+  .in{position:relative;padding:62px 68px;height:100%;display:flex;flex-direction:column}
+  .crest{display:flex;align-items:center;gap:14px;font-family:"Space Mono",monospace;
+    font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:#8E99AC;margin-bottom:44px}
+  .crest b{color:#E3E4D8;font-weight:400}
+  .crest .s{flex:1;height:1px;background:#253044}
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:74px;line-height:1.02;
+    letter-spacing:-.02em;max-width:20ch}
+  h1 em{font-style:italic;color:#E9A6C4}
+  .recs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:auto}
+  .r{border:1px solid #253044;border-radius:4px;padding:22px 24px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.025),transparent)}
+  .r.x{border-color:rgba(142,59,98,.55)} .r.k{border-color:rgba(47,107,79,.6)}
+  .r dt{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:#8E99AC;margin-bottom:5px}
+  .r dd{font-size:23px;font-weight:500;margin-bottom:15px}
+  .r dd b.x{color:#E9A6C4} .r dd b.k{color:#86C4A4}
+  .n{font-family:"Instrument Serif",serif;font-size:52px;line-height:1}
+  .n.x{color:#E9A6C4} .n.k{color:#86C4A4}
+  .st{position:absolute;top:20px;right:22px;font-family:"Space Mono",monospace;font-size:11px;
+    letter-spacing:.18em;text-transform:uppercase;padding:4px 10px;border-radius:2px;
+    border:1px solid currentColor;transform:rotate(-4deg)}
+  .st.x{color:#E9A6C4} .st.k{color:#86C4A4}
+</style></head>
+<body><div class="in">
+  <div class="crest"><b>LinkedIn Job Finder</b><span class="s"></span><span>Free · no account</span></div>
+  <h1>LinkedIn said “jobs in Armenia” and showed me <em>Colombia.</em></h1>
+  <div class="recs">
+    <div class="r x"><span class="st x">What happens</span>
+      <dt>It actually searches</dt><dd>Armenia, Quindío — <b class="x">Colombia</b></dd>
+      <div class="n x">1,385 results</div></div>
+    <div class="r k"><span class="st k">With the right id</span>
+      <dt>It searches</dt><dd>Armenia — <b class="k">the country</b></dd>
+      <div class="n k">83 results</div></div>
+  </div>
+</div></body></html>

@@ -3,9 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LinkedIn Job Finder — the search box resolves to the wrong country</title>
-<meta name="description" content="Build LinkedIn job-search URLs with the filters the UI hides: worldwide search, 48 verified country geoIds, and the keyword patterns that surface cross-border contractor roles.">
+<title>LinkedIn Job Finder — search several countries at once, correctly</title>
+<meta name="description" content="LinkedIn resolves country names to the wrong country and only lets you search one place at a time. This fixes both: 48 verified location ids, many countries in one search, free, no account.">
 <meta name="color-scheme" content="dark light">
+<link rel="canonical" href="https://mailtoharutyunyan.github.io/linkedin-job-finder/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mailtoharutyunyan.github.io/linkedin-job-finder/">
+<meta property="og:title" content="LinkedIn says “Jobs in Armenia” and shows you Colombia">
+<meta property="og:description" content="I tested 39 country names in LinkedIn's job search. Not one resolved to the plain country. Nine land on a different country entirely. Here is the fix, and a search that covers many countries at once.">
+<meta property="og:image" content="https://mailtoharutyunyan.github.io/linkedin-job-finder/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -23,129 +32,148 @@
   --pad:clamp(18px,4vw,34px);
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--ui);
   font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 :focus-visible{outline:2px solid var(--stamp-lite);outline-offset:2px;border-radius:2px}
-.shell{max-width:1080px;margin:0 auto;padding:0 var(--pad)}
-
-/* ── eyebrow / labels ─────────────────────────────────────── */
+.shell{max-width:1020px;margin:0 auto;padding:0 var(--pad)}
 .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim-ink);margin:0 0 14px}
 .on-paper .eyebrow{color:var(--dim-paper)}
 
-/* ── cover / hero ─────────────────────────────────────────── */
-.cover{padding:clamp(46px,9vh,88px) 0 clamp(40px,7vh,64px);
+/* ── cover ────────────────────────────────────────────────── */
+.cover{padding:clamp(40px,7vh,72px) 0 clamp(34px,6vh,54px);
   border-bottom:1px solid var(--rule-ink);position:relative;overflow:hidden}
 .cover::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:
     repeating-linear-gradient(102deg,transparent 0 3px,rgba(233,166,196,.028) 3px 4px),
-    radial-gradient(120% 90% at 88% -10%,rgba(142,59,98,.20),transparent 62%);}
+    radial-gradient(120% 90% at 88% -10%,rgba(142,59,98,.20),transparent 62%)}
 .cover>*{position:relative}
-.crest{display:flex;align-items:center;gap:11px;margin-bottom:clamp(30px,6vh,52px);
+.crest{display:flex;align-items:center;gap:11px;margin-bottom:clamp(26px,5vh,44px);
   font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
   color:var(--dim-ink)}
-.crest b{color:var(--paper);font-weight:400;letter-spacing:.2em}
+.crest b{color:var(--paper);font-weight:400}
 .crest .sep{flex:1;height:1px;background:var(--rule-ink)}
-
-h1{font-family:var(--display);font-weight:400;
-  font-size:clamp(34px,6.2vw,66px);line-height:1.02;letter-spacing:-.015em;
-  margin:0 0 22px;max-width:22ch;color:var(--paper)}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,5.6vw,60px);
+  line-height:1.04;letter-spacing:-.015em;margin:0 0 20px;max-width:23ch}
 h1 em{font-style:italic;color:var(--stamp-lite)}
-.lede{font-size:clamp(15px,1.7vw,17.5px);color:var(--dim-ink);max-width:56ch;margin:0 0 34px}
+.lede{font-size:clamp(15px,1.6vw,17px);color:var(--dim-ink);max-width:58ch;margin:0 0 30px}
 .lede b{color:var(--paper);font-weight:500}
-
-/* ── the discrepancy: two records, one name ───────────────── */
-.records{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-bottom:26px}
+.records{display:grid;gap:13px;grid-template-columns:1fr 1fr;margin-bottom:8px}
 @media(max-width:820px){.records{grid-template-columns:1fr}}
-.rec{border:1px solid var(--rule-ink);border-radius:3px;padding:16px 17px 15px;
-  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);position:relative}
-.rec[data-verdict="reject"]{border-color:rgba(142,59,98,.5)}
-.rec[data-verdict="verify"]{border-color:rgba(47,107,79,.55)}
-.rec dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:7px 14px;align-items:baseline}
+.rec{border:1px solid var(--rule-ink);border-radius:3px;padding:15px 16px;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent)}
+.rec[data-v="x"]{border-color:rgba(142,59,98,.5)}
+.rec[data-v="ok"]{border-color:rgba(47,107,79,.55)}
+.rec dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 13px;align-items:baseline}
 .rec dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim-ink);white-space:nowrap}
-.rec dd{margin:0;font-size:14px;color:var(--paper)}
-.rec dd.q{font-family:var(--mono);font-size:12.5px;word-break:break-all}
-.rec dd.count{font-family:var(--display);font-size:27px;line-height:1}
-.rec[data-verdict="reject"] dd.count{color:var(--stamp-lite)}
-.rec[data-verdict="verify"] dd.count{color:var(--verify-lite)}
-.stamp{position:absolute;top:13px;right:14px;font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.16em;text-transform:uppercase;padding:3px 8px;border-radius:2px;
+.rec dd{margin:0;font-size:13.5px}
+.rec dd.q{font-family:var(--mono);font-size:12px;word-break:break-all}
+.rec dd.count{font-family:var(--display);font-size:25px;line-height:1}
+.rec[data-v="x"] dd.count{color:var(--stamp-lite)}
+.rec[data-v="ok"] dd.count{color:var(--verify-lite)}
+.stamp{position:absolute;top:12px;right:13px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.16em;text-transform:uppercase;padding:3px 7px;border-radius:2px;
   border:1px solid currentColor;transform:rotate(-3.5deg)}
-.rec[data-verdict="reject"] .stamp{color:var(--stamp-lite)}
-.rec[data-verdict="verify"] .stamp{color:var(--verify-lite)}
-.readout{font-size:13.5px;color:var(--dim-ink);max-width:64ch;margin:0}
-.readout b{color:var(--paper);font-weight:500}
+.rec[data-v="x"] .stamp{color:var(--stamp-lite)}
+.rec[data-v="ok"] .stamp{color:var(--verify-lite)}
 
-/* ── data page (paper) ────────────────────────────────────── */
+/* ── the one search row ───────────────────────────────────── */
 .on-paper{background:var(--paper);color:var(--ink)}
-.page{padding:clamp(34px,6vh,58px) 0;border-bottom:1px solid var(--rule-paper)}
-.page:last-of-type{border-bottom:0}
-h2{font-family:var(--display);font-weight:400;font-size:clamp(23px,3.1vw,31px);
+.page{padding:clamp(32px,5.5vh,54px) 0;border-bottom:1px solid var(--rule-paper)}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(22px,3vw,30px);
   line-height:1.12;letter-spacing:-.01em;margin:0 0 9px;color:var(--ink)}
-.sub{color:var(--dim-paper);font-size:14px;max-width:74ch;margin:0 0 24px}
-.sub code,.finding code,.readout code{font-family:var(--mono);font-size:12.5px;
-  background:var(--paper-3);padding:1px 5px;border-radius:2px;color:var(--stamp-deep)}
-.readout code{background:var(--ink-3);color:var(--stamp-lite)}
+.sub{color:var(--dim-paper);font-size:14px;max-width:74ch;margin:0 0 22px}
+.sub code,.finding code{font-family:var(--mono);font-size:12.5px;background:var(--paper-3);
+  padding:1px 5px;border-radius:2px;color:var(--stamp-deep)}
 
-/* ── controls ─────────────────────────────────────────────── */
-.ctls{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
-.ctls.wide{grid-template-columns:1.6fr 1fr}
-@media(max-width:860px){.ctls,.ctls.wide{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.ctls,.ctls.wide{grid-template-columns:1fr}}
-.ctl>span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+.hunt{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;align-items:start}
+@media(max-width:760px){.hunt{grid-template-columns:1fr}}
+.fld>span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim-paper);margin-bottom:6px}
-.ctl input,.ctl select{width:100%;font-family:var(--ui);font-size:14.5px;color:var(--ink);
+.fld input,.fld select{width:100%;font-family:var(--ui);font-size:16px;color:var(--ink);
   background:var(--paper-2);border:1px solid var(--rule-paper);border-radius:2px;
-  padding:10px 11px;appearance:none}
-.ctl select{background-image:linear-gradient(45deg,transparent 50%,var(--dim-paper) 50%),
+  padding:12px 13px;appearance:none}
+.fld select{background-image:linear-gradient(45deg,transparent 50%,var(--dim-paper) 50%),
   linear-gradient(135deg,var(--dim-paper) 50%,transparent 50%);
-  background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;
-  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
-.ctl input:focus,.ctl select:focus{border-color:var(--stamp);background-color:#fff}
-.toggles{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px}
-.toggles label{display:flex;align-items:center;gap:7px;font-size:13.5px;cursor:pointer;
-  color:var(--ink)}
-.toggles input{accent-color:var(--stamp);width:15px;height:15px}
+  background-position:calc(100% - 17px) 54%,calc(100% - 12px) 54%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+.fld input:focus,.fld select:focus{border-color:var(--stamp);background-color:#fff;outline:none}
+.where{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;min-height:1px}
+.where button{font-family:var(--ui);font-size:12.5px;background:var(--stamp);color:#fff;
+  border:0;border-radius:999px;padding:5px 10px 5px 12px;cursor:pointer;display:flex;
+  align-items:center;gap:7px}
+.where button::after{content:"×";font-size:14px;line-height:1;opacity:.75}
+.where button:hover{background:var(--stamp-deep)}
+.where .none{font-size:12.5px;color:var(--dim-paper)}
 
-/* ── chips ────────────────────────────────────────────────── */
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
 .chip{font-family:var(--ui);font-size:12.5px;color:var(--ink);cursor:pointer;
   background:transparent;border:1px solid var(--rule-paper);border-radius:999px;
   padding:5px 13px;transition:border-color .14s,color .14s}
 .chip:hover{border-color:var(--stamp);color:var(--stamp-deep)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
-/* ── MRZ: the signature ───────────────────────────────────── */
-.mrz{margin-top:22px;background:var(--paper-2);border:1px solid var(--rule-paper);
+.go-row{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:20px}
+.btn{font-family:var(--ui);font-size:14.5px;font-weight:600;cursor:pointer;text-decoration:none;
+  display:inline-block;padding:12px 22px;border-radius:2px;background:var(--stamp);color:#fff;
+  border:1px solid var(--stamp);transition:background .14s}
+.btn:hover{background:var(--stamp-deep);border-color:var(--stamp-deep)}
+.btn.ghost{background:transparent;color:var(--stamp-deep);border-color:var(--rule-paper);
+  font-size:13.5px;padding:11px 16px;font-weight:500}
+.btn.ghost:hover{background:transparent;border-color:var(--stamp)}
+
+/* ── refine: one disclosure, native ───────────────────────── */
+details.refine{margin-top:18px;border-top:1px solid var(--rule-paper);padding-top:14px}
+details.refine>summary{cursor:pointer;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim-paper);list-style:none;
+  display:flex;align-items:center;gap:8px}
+details.refine>summary::-webkit-details-marker{display:none}
+details.refine>summary::after{content:"+";font-family:var(--ui);font-size:15px;color:var(--stamp)}
+details.refine[open]>summary::after{content:"–"}
+details.refine>summary:hover{color:var(--stamp-deep)}
+.refine-body{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+@media(max-width:860px){.refine-body{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.refine-body{grid-template-columns:1fr}}
+.refine-body .fld input,.refine-body .fld select{font-size:14px;padding:9px 11px}
+.toggles{display:flex;flex-wrap:wrap;gap:16px;margin-top:15px}
+.toggles label{display:flex;align-items:center;gap:7px;font-size:13.5px;cursor:pointer}
+.toggles input{accent-color:var(--stamp);width:15px;height:15px}
+
+/* ── MRZ signature ────────────────────────────────────────── */
+.mrz{margin-top:20px;background:var(--paper-2);border:1px solid var(--rule-paper);
   border-radius:3px;overflow:hidden}
 .mrz-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
-  padding:9px 13px;border-bottom:1px dashed var(--rule-paper);
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim-paper)}
-.mrz-band{padding:14px 13px 15px;background:
+  padding:9px 13px;border-bottom:1px dashed var(--rule-paper);font-family:var(--mono);
+  font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim-paper)}
+.mrz-band{padding:13px;background:
   repeating-linear-gradient(90deg,transparent 0 22px,rgba(14,22,34,.022) 22px 23px)}
-.mrz-line{font-family:var(--mono);font-weight:700;
-  font-size:clamp(10px,1.55vw,15px);line-height:1.65;letter-spacing:.06em;
-  color:var(--ink);white-space:pre;overflow-x:auto;margin:0;
-  scrollbar-width:none}
+.mrz-line{font-family:var(--mono);font-weight:700;font-size:clamp(10px,1.55vw,15px);
+  line-height:1.65;letter-spacing:.06em;color:var(--ink);white-space:pre;overflow-x:auto;
+  margin:0;scrollbar-width:none}
 .mrz-line::-webkit-scrollbar{display:none}
 .mrz-line i{font-style:normal;color:var(--rule-paper)}
-.mrz-url{padding:10px 13px;border-top:1px dashed var(--rule-paper);
-  font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--dim-paper);
-  word-break:break-all}
+.mrz-url{padding:10px 13px;border-top:1px dashed var(--rule-paper);font-family:var(--mono);
+  font-size:11px;line-height:1.5;color:var(--dim-paper);word-break:break-all}
 
-/* ── buttons ──────────────────────────────────────────────── */
-.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
-.btn{font-family:var(--ui);font-size:13.5px;font-weight:600;cursor:pointer;
-  text-decoration:none;display:inline-block;padding:10px 18px;border-radius:2px;
-  background:var(--stamp);color:#fff;border:1px solid var(--stamp);transition:background .14s}
-.btn:hover{background:var(--stamp-deep);border-color:var(--stamp-deep)}
-.btn.ghost{background:transparent;color:var(--stamp-deep);border-color:var(--rule-paper)}
-.btn.ghost:hover{background:transparent;border-color:var(--stamp);color:var(--stamp-deep)}
-.on-ink-acts .btn.ghost{color:var(--stamp-lite);border-color:var(--rule-ink)}
-
-/* ── list cards ───────────────────────────────────────────── */
+/* ── tables & lists ──────────────────────────────────────── */
+.annex{margin-top:13px;border:1px solid var(--rule-paper);border-radius:3px;
+  background:var(--paper-2);overflow:hidden}
+.annex.scroll{max-height:320px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{position:sticky;top:0;z-index:1;background:var(--paper-2);text-align:left;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim-paper);font-weight:400;padding:9px 13px;
+  border-bottom:1px solid var(--rule-paper)}
+td{padding:7px 13px;border-bottom:1px solid var(--paper-3)}
+tr:last-child td{border-bottom:0}
+td.code,td.typed{font-family:var(--mono);font-size:12.5px}
+td.code{color:var(--stamp-deep)}
+td.gets b{color:var(--stamp-deep)}
+.sev{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;border:1px solid currentColor;border-radius:2px;padding:1px 5px;
+  color:var(--verify)}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
 @media(max-width:760px){.cards{grid-template-columns:1fr}}
 .cards a{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
@@ -156,51 +184,26 @@ h2{font-family:var(--display);font-weight:400;font-size:clamp(23px,3.1vw,31px);
 .cards a em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--dim-paper);
   text-align:right;flex-shrink:0}
 
-/* ── annex table ──────────────────────────────────────────── */
-.annex{margin-top:14px;border:1px solid var(--rule-paper);border-radius:3px;
-  max-height:340px;overflow-y:auto;background:var(--paper-2)}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{position:sticky;top:0;z-index:1;background:var(--paper-2);text-align:left;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim-paper);font-weight:400;padding:9px 13px;
-  border-bottom:1px solid var(--rule-paper)}
-td{padding:7px 13px;border-bottom:1px solid var(--paper-3)}
-tr:last-child td{border-bottom:0}
-td.code{font-family:var(--mono);font-size:12.5px;color:var(--stamp-deep)}
-.cp{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:10px;
-  letter-spacing:.1em;text-transform:uppercase;color:var(--dim-paper);padding:3px 6px}
-.cp:hover{color:var(--stamp-deep)}
-
-/* ── findings ─────────────────────────────────────────────── */
-.findings{display:grid;gap:13px;margin-top:6px}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:16px;
-  border-top:1px solid var(--rule-paper);padding-top:15px}
-.finding-n{font-family:var(--mono);font-weight:700;font-size:14px;line-height:1.5;
-  letter-spacing:.06em;color:var(--stamp);min-width:2ch;text-align:right;
-  font-variant-numeric:tabular-nums}
-.finding h3{font-family:var(--ui);font-size:15px;font-weight:600;margin:0 0 5px;
-  color:var(--ink)}
-.finding p{margin:0;font-size:13.8px;color:var(--dim-paper);max-width:76ch}
-.finding p b{color:var(--ink);font-weight:600}
-.finding p+p{margin-top:7px}
-
-/* ── evidence slab: findings return to the cover's ink ────── */
+/* ── findings on ink ─────────────────────────────────────── */
 .slab-ink{background:var(--ink);color:var(--paper);position:relative}
 .slab-ink::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120% 80% at 12% 0%,rgba(142,59,98,.16),transparent 60%)}
 .slab-ink>*{position:relative}
 .slab-ink h2{color:var(--paper)}
 .slab-ink .sub{color:var(--dim-ink)}
-.slab-ink .sub code{background:var(--ink-3);color:var(--stamp-lite)}
-.slab-ink .finding{border-top-color:var(--rule-ink)}
-.slab-ink .finding h3{color:var(--paper)}
-.slab-ink .finding p{color:var(--dim-ink)}
-.slab-ink .finding p b{color:var(--paper)}
-.slab-ink .finding code{background:var(--ink-3);color:var(--stamp-lite)}
-.slab-ink .finding-n{color:var(--stamp-lite)}
+.findings{display:grid;gap:13px;margin-top:4px}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:15px;
+  border-top:1px solid var(--rule-ink);padding-top:14px}
+.finding-n{font-family:var(--mono);font-weight:700;font-size:14px;line-height:1.5;
+  letter-spacing:.06em;color:var(--stamp-lite);min-width:2ch;text-align:right}
+.finding h3{font-family:var(--ui);font-size:15px;font-weight:600;margin:0 0 5px;
+  color:var(--paper)}
+.finding p{margin:0;font-size:13.8px;color:var(--dim-ink);max-width:76ch}
+.finding p b{color:var(--paper);font-weight:600}
+.finding p+p{margin-top:6px}
+.finding code{background:var(--ink-3);color:var(--stamp-lite)}
 
-/* ── colophon ─────────────────────────────────────────────── */
-.colophon{background:var(--ink);color:var(--dim-ink);padding:clamp(30px,5vh,48px) 0;
+.colophon{background:var(--ink);color:var(--dim-ink);padding:clamp(28px,4.5vh,44px) 0;
   border-top:1px solid var(--rule-ink)}
 .colophon-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:end}
 @media(max-width:700px){.colophon-grid{grid-template-columns:1fr}}
@@ -210,283 +213,231 @@ td.code{font-family:var(--mono);font-size:12.5px;color:var(--stamp-deep)}
 .colophon .mono{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
   text-transform:uppercase}
 
-/* ── load sequence ────────────────────────────────────────── */
 @keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 .seq{animation:rise .6s cubic-bezier(.2,.7,.3,1) both}
 .seq-1{animation-delay:.05s}.seq-2{animation-delay:.15s}.seq-3{animation-delay:.25s}
-.seq-4{animation-delay:.35s}.seq-5{animation-delay:.45s}
-@media(prefers-reduced-motion:reduce){
-  .seq{animation:none}
-  *{transition:none!important}
-}
+.seq-4{animation-delay:.35s}
+@media(prefers-reduced-motion:reduce){.seq{animation:none}*{transition:none!important}
+  html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 
-<!-- ══ COVER ══════════════════════════════════════════════ -->
 <div class="cover">
   <div class="shell">
     <div class="crest seq seq-1">
-      <b>LinkedIn Job Finder</b><span class="sep"></span><span>Search URL builder</span>
+      <b>LinkedIn Job Finder</b><span class="sep"></span><span>Free · no account</span>
     </div>
-
-    <h1 class="seq seq-2">The location box resolves to <em>the wrong country.</em></h1>
-
-    <p class="lede seq seq-2">Type a country name into LinkedIn's job search and it guesses.
-      Sometimes it guesses a different continent, then returns a thousand results that look real.
-      <b>Pass the numeric id instead.</b> Here is the same search, twice.</p>
+    <h1 class="seq seq-2">LinkedIn said “jobs in Armenia” and showed me <em>Colombia.</em></h1>
+    <p class="lede seq seq-2">Type a country name into its job search and it guesses — sometimes a
+      different continent, then returns a thousand results that look real.
+      <b>It also only lets you search one place at a time.</b> This fixes both.</p>
 
     <div class="records seq seq-3">
-      <div class="rec" data-verdict="reject">
-        <span class="stamp">Discarded</span>
+      <div class="rec" data-v="x">
+        <span class="stamp">What happens</span>
         <dl>
-          <dt>Query</dt><dd class="q">location=Armenia</dd>
-          <dt>Resolves</dt><dd>Armenia, Quindío — <b>Colombia</b></dd>
-          <dt>Returns</dt><dd class="count">1,432</dd>
-          <dt>Reality</dt><dd>Latin America, start to finish</dd>
+          <dt>You search</dt><dd class="q">Armenia</dd>
+          <dt>It searches</dt><dd>Armenia, Quindío — <b>Colombia</b></dd>
+          <dt>Results</dt><dd class="count">1,385</dd>
         </dl>
       </div>
-      <div class="rec" data-verdict="verify">
-        <span class="stamp">Verified</span>
+      <div class="rec" data-v="ok">
+        <span class="stamp">What you wanted</span>
         <dl>
-          <dt>Query</dt><dd class="q">geoId=103030111</dd>
-          <dt>Resolves</dt><dd>Armenia — <b>the country</b></dd>
-          <dt>Returns</dt><dd class="count">83</dd>
-          <dt>Reality</dt><dd>Remote roles, actually hiring there</dd>
+          <dt>You search</dt><dd class="q">geoId 103030111</dd>
+          <dt>It searches</dt><dd>Armenia — <b>the country</b></dd>
+          <dt>Results</dt><dd class="count">83</dd>
         </dl>
       </div>
-    </div>
-
-    <p class="readout seq seq-4">Both searches ran the same day, minutes apart. The only difference is
-      <code>location</code> versus <code>geoId</code>. <b>Georgia collides the same way</b> — the
-      country against the US state. This page ships 48 verified ids so you never hand LinkedIn a
-      guess.</p>
-
-    <div class="acts on-ink-acts seq seq-5">
-      <a class="btn" href="#builder">Build a search</a>
-      <a class="btn ghost" href="#annex">See the 48 ids</a>
     </div>
   </div>
 </div>
 
-<!-- ══ DATA PAGE ══════════════════════════════════════════ -->
 <div class="on-paper">
-
-  <!-- builder -->
-  <section class="page" id="builder">
+  <!-- ── the search ── -->
+  <section class="page" id="search">
     <div class="shell">
-      <p class="eyebrow">Search builder</p>
-      <h2>Set the parameters, open the search</h2>
-      <p class="sub">Everything runs in your browser. The page builds a link and you click it, so you
-        stay in your own logged-in session — nothing is scraped and no account is touched.</p>
+      <p class="eyebrow">Search</p>
+      <h2>One role, as many countries as you like</h2>
+      <p class="sub">LinkedIn accepts a single location. If you can work in six countries, that is six
+        separate searches you have to remember to re-run. This is one.</p>
 
-      <div class="ctls wide">
-        <label class="ctl"><span>Keywords</span>
-          <input type="text" id="kw" value="Java Spring Boot" spellcheck="false"></label>
-        <label class="ctl"><span>Location</span><select id="geo"></select></label>
+      <div class="hunt">
+        <label class="fld"><span>Role or skill</span>
+          <input type="text" id="kw" value="Java Spring Boot" spellcheck="false"
+                 placeholder="e.g. backend engineer"></label>
+        <div class="fld"><span>Where you can work</span>
+          <select id="geoAdd"></select>
+          <div class="where" id="where"></div>
+        </div>
       </div>
 
       <div class="chips" id="kwChips"></div>
 
-      <div class="ctls" style="margin-top:16px">
-        <label class="ctl"><span>Posted within</span>
-          <select id="tpr">
-            <option value="r3600">Past hour</option>
-            <option value="r86400">Past 24 hours</option>
-            <option value="r604800" selected>Past week</option>
-            <option value="r2592000">Past month</option>
-            <option value="">Any time</option>
-          </select></label>
-        <label class="ctl"><span>Job type</span>
-          <select id="jt">
-            <option value="" selected>Any — read finding 2</option>
-            <option value="C">Contract</option>
-            <option value="F">Full-time</option>
-            <option value="C,F">Contract + full-time</option>
-            <option value="P">Part-time</option>
-            <option value="T">Temporary</option>
-          </select></label>
-        <label class="ctl"><span>Workplace</span>
-          <select id="wt">
-            <option value="2" selected>Remote</option>
-            <option value="2,3">Remote + hybrid</option>
-            <option value="1">On-site</option>
-            <option value="">Any</option>
-          </select></label>
-        <label class="ctl"><span>Experience</span>
-          <select id="ex">
-            <option value="">Any</option>
-            <option value="2">Entry</option>
-            <option value="3">Associate</option>
-            <option value="4" selected>Mid-senior</option>
-            <option value="5">Director</option>
-            <option value="4,5">Mid-senior + director</option>
-          </select></label>
+      <div class="go-row">
+        <a class="btn" id="go" target="_blank" rel="noopener">Search on LinkedIn</a>
+        <button class="btn ghost" id="share" type="button">Copy this search</button>
       </div>
 
-      <div class="toggles">
-        <label><input type="checkbox" id="ea"> Under 10 applicants</label>
-        <label><input type="checkbox" id="al"> Easy Apply only</label>
-        <label><input type="checkbox" id="sort" checked> Newest first</label>
-      </div>
-
-      <div class="mrz">
-        <div class="mrz-head"><span>Machine-readable search</span><span id="mrzGeo">GEO —</span></div>
-        <div class="mrz-band">
-          <p class="mrz-line" id="mrz1"></p>
-          <p class="mrz-line" id="mrz2"></p>
+      <details class="refine">
+        <summary>Refine</summary>
+        <div class="refine-body">
+          <label class="fld"><span>Posted within</span>
+            <select id="tpr">
+              <option value="r86400">24 hours</option>
+              <option value="r604800" selected>A week</option>
+              <option value="r2592000">A month</option>
+              <option value="">Any time</option>
+            </select></label>
+          <label class="fld"><span>Workplace</span>
+            <select id="wt">
+              <option value="2" selected>Remote</option>
+              <option value="2,3">Remote or hybrid</option>
+              <option value="">Any</option>
+            </select></label>
+          <label class="fld"><span>Level</span>
+            <select id="ex">
+              <option value="">Any</option>
+              <option value="3">Associate</option>
+              <option value="4" selected>Mid-senior</option>
+              <option value="4,5">Senior or director</option>
+            </select></label>
+          <label class="fld"><span>Hide jobs mentioning</span>
+            <input type="text" id="ex_kw" placeholder="clearance, W2" spellcheck="false"></label>
         </div>
-        <div class="mrz-url" id="urlOut"></div>
-      </div>
-
-      <div class="acts">
-        <a class="btn" id="go" target="_blank" rel="noopener">Open on LinkedIn</a>
-        <button class="btn ghost" id="copy" type="button">Copy link</button>
-      </div>
+        <div class="chips" id="negChips"></div>
+        <div class="toggles">
+          <label><input type="checkbox" id="ea"> Fewer than 10 applicants</label>
+          <label><input type="checkbox" id="al"> Easy Apply only</label>
+        </div>
+        <div class="mrz">
+          <div class="mrz-head"><span>Machine-readable search</span><span id="mrzGeo"></span></div>
+          <div class="mrz-band">
+            <p class="mrz-line" id="mrz1"></p>
+            <p class="mrz-line" id="mrz2"></p>
+          </div>
+          <div class="mrz-url" id="urlOut"></div>
+        </div>
+      </details>
     </div>
   </section>
 
-  <!-- cross-border -->
+  <!-- ── cross-border ── -->
   <section class="page">
     <div class="shell">
-      <p class="eyebrow">Cross-border work</p>
+      <p class="eyebrow">If you need work across borders</p>
       <h2>Search how they intend to pay you</h2>
-      <p class="sub">To find work that crosses borders without a permit, job titles are the wrong
-        target. Search the payment mechanism instead — companies put it right in the title, which is
-        why <em>"Senior Software Engineer (Contractor through Deel)"</em> is a real posting you can
-        find. Each preset loads its keywords and opens the search at your current location.</p>
-      <div class="cards" id="presets"></div>
-      <div class="findings" style="margin-top:26px">
-        <div class="finding">
-          <span class="finding-n">!</span>
-          <div>
-            <h3>Read the location line on every result</h3>
-            <p>Contractor-via-platform roles are usually region-scoped. US companies mostly use these
-              arrangements for Latin America nearshore; European companies use them for Eastern Europe
-              and the Caucasus. <b>"Must be authorized to work in X"</b> or <b>"W2 only, no C2C"</b> is
-              a hard no, however remote the listing looks.</p>
-          </div>
-        </div>
-      </div>
+      <p class="sub">Job titles are the wrong target. Companies put the arrangement in the title, which
+        is why <em>"Senior Software Engineer (Contractor through Deel)"</em> is a real posting. Tap one
+        to load it into the search above.</p>
+      <div class="chips" id="presets"></div>
+      <p class="sub" style="margin:20px 0 0"><b>Then read the location line.</b> These roles are usually
+        region-scoped — US companies mostly use them for Latin America, European companies for Eastern
+        Europe and the Caucasus. <code>Must be authorized to work in X</code> is a hard no however
+        remote it looks.</p>
     </div>
   </section>
 
-  <!-- annex -->
-  <section class="page" id="annex">
+  <!-- ── collisions ── -->
+  <section class="page" id="collisions">
     <div class="shell">
-      <p class="eyebrow">Annex — location codes</p>
-      <h2>48 verified country ids</h2>
-      <p class="sub">Harvested from LinkedIn's own typeahead endpoint, matched on exact display name,
-        and spot-checked against live result counts. Hand LinkedIn one of these instead of a country
-        name.</p>
-      <label class="ctl" style="max-width:290px"><span>Filter</span>
-        <input type="text" id="geoFilter" placeholder="Start typing a country" spellcheck="false"></label>
+      <p class="eyebrow">Why the location box can't be trusted</p>
+      <h2>Nine country names go to the wrong country</h2>
+      <p class="sub">I typed 39 country names and checked what LinkedIn resolves each to.
+        <b>Not one of the 39 gave back the plain country.</b> Nine land somewhere else entirely.</p>
       <div class="annex">
         <table>
-          <thead><tr><th>Location</th><th>geoId</th><th style="width:1%"></th></tr></thead>
+          <thead><tr><th>You type</th><th>LinkedIn searches</th><th style="width:1%"></th></tr></thead>
+          <tbody id="collisionTable"></tbody>
+        </table>
+      </div>
+      <p class="sub" style="margin-top:17px">The other thirty quietly narrow you to one city instead of
+        jumping countries — Poland becomes Mazowieckie, Ukraine becomes Kyiv, India becomes
+        Maharashtra, Ireland becomes County Dublin. Every role outside that region vanishes and nothing
+        tells you.</p>
+      <p class="sub">Two are confirmed end to end in the live search: <code>Armenia</code> put
+        "Armenia, Quindío, Colombia" in LinkedIn's own location box for 1,385 Latin American results,
+        and <code>Georgia</code> resolved to "Georgia, United States" for 9,645 results with nothing in
+        Tbilisi. The rest are the resolver's first pick rather than a click-through I checked one by
+        one. Found another? <a href="https://github.com/mailtoharutyunyan/linkedin-job-finder/issues"
+        style="color:var(--stamp-deep)">Add it.</a></p>
+    </div>
+  </section>
+
+  <!-- ── ids ── -->
+  <section class="page">
+    <div class="shell">
+      <p class="eyebrow">Annex</p>
+      <h2>48 verified location ids</h2>
+      <p class="sub">From LinkedIn's own typeahead, matched on exact name and spot-checked against live
+        result counts. The search above uses these, so you never hand LinkedIn a guess.</p>
+      <div class="annex scroll">
+        <table>
+          <thead><tr><th>Location</th><th>geoId</th></tr></thead>
           <tbody id="geoTable"></tbody>
         </table>
       </div>
-      <p class="sub" style="margin:18px 0 0">Need a city, state or region that isn't listed? Run this
-        in your console while logged in to LinkedIn — it has to be same-origin, which is why these ids
-        ship baked in rather than fetched live. Match <code>displayName</code> exactly before trusting
-        the id; that is precisely how the Armenia collision bites.</p>
-      <div class="mrz" style="margin-top:12px">
-        <div class="mrz-url" id="snippet" style="border-top:0"></div>
-      </div>
     </div>
   </section>
 
-  <!-- ats -->
+  <!-- ── beyond linkedin ── -->
   <section class="page">
     <div class="shell">
-      <p class="eyebrow">Annex — applicant tracking systems</p>
-      <h2>Go around the boards entirely</h2>
+      <p class="eyebrow">Beyond LinkedIn</p>
+      <h2>Go straight to the source</h2>
       <p class="sub">Every job exists on a Lever, Greenhouse, Ashby or Workable page before an
-        aggregator indexes it. Searching those domains finds roles earlier, free, with no board
-        subscription — often the highest-yield channel there is.</p>
-      <div class="ctls wide">
-        <label class="ctl"><span>Role keywords</span>
-          <input type="text" id="atsKw" value="senior java backend" spellcheck="false"></label>
-        <label class="ctl"><span>Must also contain</span>
-          <input type="text" id="atsExtra" value="remote" spellcheck="false"></label>
+        aggregator indexes it. This searches all seven at once, using the role above.</p>
+      <div class="go-row" style="margin-top:0">
+        <a class="btn ghost" id="atsGo" target="_blank" rel="noopener">Search 7 hiring platforms</a>
       </div>
-      <div class="chips" id="atsChips"></div>
-      <div class="mrz" style="margin-top:20px">
-        <div class="mrz-head"><span>Query</span><span>Past month</span></div>
-        <div class="mrz-url" id="atsOut" style="border-top:0"></div>
-      </div>
-      <div class="acts" id="atsRow"></div>
-    </div>
-  </section>
-
-  <!-- boards -->
-  <section class="page">
-    <div class="shell">
-      <p class="eyebrow">Other boards</p>
-      <h2>Worth a pass, none worth paying for</h2>
-      <p class="sub">Aggregators are indexes. Each one links to a posting that lives on the company's
-        own site, where applying is free. If a board paywalls its results, use the free tier to harvest
-        company names and apply direct.</p>
-      <div class="cards" id="boards"></div>
+      <div class="cards" style="margin-top:20px" id="boards"></div>
+      <p class="sub" style="margin:18px 0 0"><b>You never need a paid job board.</b> Aggregators are
+        indexes — each links to a posting on the company's own site, where applying is free.</p>
     </div>
   </section>
 </div>
 
-<!-- ══ EVIDENCE ═══════════════════════════════════════════ -->
 <div class="slab-ink">
   <section class="page" style="border-bottom:0">
     <div class="shell">
       <p class="eyebrow">Findings</p>
       <h2>Three ways the filters mislead you</h2>
-      <p class="sub">Each measured in a live logged-in session in August 2026. Counts drift; the
-        behaviour is the point.</p>
+      <p class="sub">Measured in a live logged-in session, August 2026. Counts drift; the behaviour is
+        the point.</p>
       <div class="findings">
-        <div class="finding">
-          <span class="finding-n">1</span>
-          <div>
-            <h3>A country name resolves to the wrong country</h3>
-            <p><code>location=Armenia</code> matches <b>Armenia, Quindío, Colombia</b> and returns
-              1,432 Latin American results. The reasonable conclusion is that no work exists for you,
-              so you stop looking. The correct id returns 83 genuine Armenia-remote roles.</p>
-            <p>Always pass <code>geoId</code>. Never pass <code>location</code> as text.</p>
-          </div>
-        </div>
-        <div class="finding">
-          <span class="finding-n">2</span>
-          <div>
-            <h3>The Contract job type deletes almost everything real</h3>
-            <p>Filtering job type to <b>Contract</b> against one country returned <b>1 result</b>. The
-              same search unfiltered returned <b>83</b>. Companies hiring international contractors
-              still tag the posting Full-time — the arrangement lives in the contract, not in that
-              field.</p>
-            <p>Leave job type on Any and describe the arrangement in your keywords instead.</p>
-          </div>
-        </div>
-        <div class="finding">
-          <span class="finding-n">3</span>
-          <div>
-            <h3>"Remote" means remote within that one country</h3>
-            <p>A worldwide remote search returns listings reading "Mexico (Remote)", "India (Remote)",
-              "United States (Remote)". Each still expects local work authorization. <b>Remote is not
-              the same as globally hireable</b>, and no filter expresses the difference.</p>
-            <p>Aggregator "Anywhere in the World" tags are no better — on one major board, listings
-              carrying that tag said "Remote US" in the body.</p>
-          </div>
-        </div>
+        <div class="finding"><span class="finding-n">1</span><div>
+          <h3>A country name resolves to the wrong country</h3>
+          <p><code>location=Armenia</code> matches <b>Armenia, Quindío, Colombia</b> and returns 1,385
+            Latin American results. The reasonable conclusion is that no work exists for you, so you
+            stop looking. The correct id returns 83 genuine Armenia-remote roles.</p>
+        </div></div>
+        <div class="finding"><span class="finding-n">2</span><div>
+          <h3>The Contract job type deletes almost everything real</h3>
+          <p>Filtering job type to <b>Contract</b> against one country returned <b>1 result</b>. The
+            same search unfiltered returned <b>83</b>. Companies hiring international contractors still
+            tag the posting Full-time — the arrangement lives in the contract, not that field. That is
+            why there is no Contract filter above.</p>
+        </div></div>
+        <div class="finding"><span class="finding-n">3</span><div>
+          <h3>"Remote" means remote within that one country</h3>
+          <p>A worldwide remote search returns "Mexico (Remote)", "India (Remote)", "United States
+            (Remote)" — each still expecting local work authorization. <b>Remote is not the same as
+            globally hireable</b>, and no filter expresses the difference.</p>
+        </div></div>
       </div>
     </div>
   </section>
 </div>
 
-<!-- ══ COLOPHON ═══════════════════════════════════════════ -->
 <footer class="colophon">
   <div class="shell colophon-grid">
     <div>
-      <p>One static page. No analytics, no cookies, no backend, nothing scraped — it only builds
-        links, which open in your own session.</p>
-      <p>Location ids verified August 2026. LinkedIn changes its parameters without notice; if a
-        filter stops behaving, <a href="https://github.com/mailtoharutyunyan/linkedin-job-finder/issues">open an issue</a>.</p>
+      <p>One static page. No analytics, no cookies, no backend, nothing scraped — it builds links,
+        which open in your own session.</p>
+      <p>Location ids verified August 2026. LinkedIn changes things without notice; if something stops
+        working, <a href="https://github.com/mailtoharutyunyan/linkedin-job-finder/issues">open an
+        issue</a>.</p>
     </div>
     <p class="mono">MIT ·
       <a href="https://github.com/mailtoharutyunyan/linkedin-job-finder">Source</a></p>
@@ -495,8 +446,8 @@ td.code{font-family:var(--mono);font-size:12.5px;color:var(--stamp-deep)}
 
 <script>
 "use strict";
-// Country ids harvested from LinkedIn's typeaheadHits endpoint
-// (typeaheadType=GEO, geoTypes=COUNTRY_OR_REGION), exact display-name match, Aug 2026.
+/* Country ids from LinkedIn's typeaheadHits endpoint (typeaheadType=GEO,
+   geoTypes=COUNTRY_OR_REGION), exact display-name match, August 2026. */
 const GEO = [
   ["Worldwide","92000000"],
   ["Armenia","103030111"],["Australia","101452733"],["Austria","103883259"],
@@ -514,174 +465,195 @@ const GEO = [
   ["Slovenia","106137034"],["Spain","105646813"],["Sweden","105117694"],
   ["Switzerland","106693272"],["Türkiye","102105699"],["Ukraine","102264497"],
   ["United Arab Emirates","104305776"],["United Kingdom","101165590"],
-  ["United States","103644278"],["Uzbekistan","107734735"],
-  ["No location — keywords only",""]
+  ["United States","103644278"],["Uzbekistan","107734735"]
+];
+
+/* Wrong-country collisions: typed name -> what the resolver picks. */
+const COLLIDE = [
+  ["Armenia","Armenia, Quindío, <b>Colombia</b>","confirmed"],
+  ["Georgia","Georgia, <b>United States</b>","confirmed"],
+  ["Lebanon","Lebanon, Tennessee, <b>United States</b>",""],
+  ["Cuba","Cubatão, São Paulo, <b>Brazil</b>",""],
+  ["Malta","Malta, Illinois, <b>United States</b>",""],
+  ["Turkey","Turkey, North Carolina, <b>United States</b>",""],
+  ["Guinea","National Capital District, <b>Papua New Guinea</b>",""],
+  ["Liberia","Liberia, Guanacaste, <b>Costa Rica</b>",""],
+  ["Niger","Lagos State, <b>Nigeria</b>",""]
 ];
 
 const KW = ["Java Spring Boot","Golang",".NET C#","Angular","React","Node.js TypeScript",
-  "Python Django","Senior backend engineer","Java AI LLM RAG","Platform SRE Kubernetes",
-  "Staff engineer","Solution architect","Data engineer"];
-
+  "Python","Data engineer","DevOps"];
+const NEG = ["clearance","W2","must be authorized","sponsorship","onsite"];
 const PRESETS = [
-  ["Contractor via platform",'"through Deel" OR "Employer of Record" OR "contractor agreement"',
-   "clearest signal"],
-  ["B2B / independent",'"B2B" OR "independent contractor" OR "self-employed" OR invoice',
-   "you invoice them"],
-  ["Explicitly global",'"work from anywhere" OR "anywhere in the world" OR "globally distributed"',
-   "narrow, precise"],
-  ["Region-wide, not country",'EMEA OR "Europe remote" OR "anywhere in Europe"',"region-scoped"],
-  ["Freelance / day rate",'freelance OR "day rate" OR "daily rate" OR contractor',"project work"],
-  ["No sponsorship needed",'"no visa" OR "no sponsorship required" OR "work permit not required"',
-   "rare wording"]
+  ["Contractor via Deel or EOR",'"through Deel" OR "Employer of Record" OR "contractor agreement"'],
+  ["B2B / independent",'"B2B" OR "independent contractor" OR "self-employed" OR invoice'],
+  ["Work from anywhere",'"work from anywhere" OR "anywhere in the world" OR "globally distributed"'],
+  ["Europe-wide",'EMEA OR "Europe remote" OR "anywhere in Europe"'],
+  ["Freelance / day rate",'freelance OR "day rate" OR contractor'],
+  ["No sponsorship needed",'"no visa" OR "no sponsorship required"']
 ];
-
-const ATS = [["Lever","jobs.lever.co"],["Greenhouse","job-boards.greenhouse.io"],
-  ["Ashby","jobs.ashbyhq.com"],["Workable","apply.workable.com"],
-  ["Teamtailor","teamtailor.com"],["Recruitee","recruitee.com"],
-  ["SmartRecruiters","jobs.smartrecruiters.com"],["Search all seven","*"]];
-
-const BOARDS = kw => [
-  ["We Work Remotely","https://weworkremotely.com/remote-jobs/search?term="+kw,"verify region tags"],
+const ATS = ["jobs.lever.co","job-boards.greenhouse.io","jobs.ashbyhq.com","apply.workable.com",
+  "teamtailor.com","recruitee.com","jobs.smartrecruiters.com"];
+const BOARDS = [
+  ["We Work Remotely","https://weworkremotely.com/","verify its region tags"],
   ["Remote Rocketship","https://www.remoterocketship.com/","real country filters"],
   ["Himalayas","https://himalayas.app/jobs","country filter"],
-  ["Wellfound","https://wellfound.com/jobs","startups"],
-  ["Working Nomads","https://www.workingnomads.com/jobs","curated"],
   ["justjoin.it","https://justjoin.it/job-offers/remote","public B2B rates, Poland"],
-  ["NoFluffJobs","https://nofluffjobs.com/","public rates, Poland"],
   ["freelancermap","https://www.freelancermap.com/projects","0% commission, EU projects"],
-  ["Dynamite Jobs","https://dynamitejobs.com/","vetted remote"],
   ["web3.career","https://web3.career/remote-jobs","contractor-friendly"]
 ];
 
-const SNIPPET =
-`await (await fetch('https://www.linkedin.com/jobs-guest/api/typeaheadHits'
-  + '?origin=jserp&typeaheadType=GEO&geoTypes=COUNTRY_OR_REGION,POPULATED_PLACE'
-  + '&query=' + encodeURIComponent('YOUR LOCATION'))).json()`;
-
 const $ = id => document.getElementById(id);
-const geoName = id => (GEO.find(g => g[1] === id) || ["—"])[0];
+const nameOf = id => (GEO.find(g => g[1] === id) || ["—"])[0];
+let picked = new Set(["103030111"]);
 
-/* ── url ────────────────────────────────────────────────── */
+function keywords(){
+  const base = $('kw').value.trim();
+  const neg = $('ex_kw').value.split(',').map(s => s.trim()).filter(Boolean)
+    .map(t => /\s/.test(t) ? `NOT "${t}"` : `NOT ${t}`).join(' ');
+  return [base, neg].filter(Boolean).join(' ');
+}
+
 function url(){
   const p = new URLSearchParams();
-  const k = $('kw').value.trim(); if (k) p.set('keywords', k);
-  const g = $('geo').value;  if (g) p.set('geoId', g);
-  const t = $('tpr').value;  if (t) p.set('f_TPR', t);
-  const j = $('jt').value;   if (j) p.set('f_JT', j);
-  const w = $('wt').value;   if (w) p.set('f_WT', w);
-  const e = $('ex').value;   if (e) p.set('f_E', e);
-  if ($('ea').checked)   p.set('f_EA','true');
-  if ($('al').checked)   p.set('f_AL','true');
-  if ($('sort').checked) p.set('sortBy','DD');
+  const k = keywords(); if (k) p.set('keywords', k);
+  const ids = [...picked];
+  /* one place uses geoId; several use f_PP, which the UI cannot express at all */
+  if (ids.length === 1) p.set('geoId', ids[0]);
+  else if (ids.length > 1) p.set('f_PP', ids.join(','));
+  const t = $('tpr').value; if (t) p.set('f_TPR', t);
+  const w = $('wt').value;  if (w) p.set('f_WT', w);
+  const e = $('ex').value;  if (e) p.set('f_E', e);
+  if ($('ea').checked) p.set('f_EA','true');
+  if ($('al').checked) p.set('f_AL','true');
+  p.set('sortBy','DD');
   return 'https://www.linkedin.com/jobs/search/?' + p.toString();
 }
 
-/* MRZ: 2 lines of 44, A–Z 0–9 and < as filler — as on a travel document */
+/* ── MRZ ── */
 const LEN = 44;
-const mrzPad = s => {
+const pad = s => {
   s = s.toUpperCase().replace(/[^A-Z0-9]+/g,'<').replace(/^<+/,'').slice(0, LEN);
   return s + '<'.repeat(LEN - s.length);
 };
-const mrzMark = s => s.replace(/<+/g, m => '<i>' + m + '</i>');
-
+const mark = s => s.replace(/<+/g, m => '<i>' + m + '</i>');
 function mrz(){
-  const g = $('geo').value;
-  const wt = {'2':'REMOTE','2,3':'REMOTE<HYBRID','1':'ONSITE'}[$('wt').value] || 'ANYPLACE';
-  const jt = {'C':'CONTRACT','F':'FULLTIME','C,F':'CONTRACT<FULLTIME','P':'PARTTIME','T':'TEMP'}[$('jt').value] || 'ANYTERM';
-  const tpr = {'r3600':'1H','r86400':'24H','r604800':'7D','r2592000':'30D'}[$('tpr').value] || 'ANYTIME';
-  const ex = {'2':'ENTRY','3':'ASSOC','4':'MIDSENIOR','5':'DIRECTOR','4,5':'MIDSENIOR<DIR'}[$('ex').value] || 'ANYLEVEL';
-  const l1 = mrzPad('LJF<' + (g ? 'GEO' + g : 'NOGEO') + '<' + geoName(g).replace(/[^A-Za-z]/g,'') + '<' + wt);
-  const l2 = mrzPad(($('kw').value.trim() || 'ANYROLE') + '<' + ex + '<' + jt + '<' + tpr);
-  $('mrz1').innerHTML = mrzMark(l1);
-  $('mrz2').innerHTML = mrzMark(l2);
-  $('mrzGeo').textContent = g ? 'GEO ' + g : 'GEO — none';
+  const ids = [...picked];
+  const w = {'2':'REMOTE','2,3':'REMOTE<HYBRID'}[$('wt').value] || 'ANYPLACE';
+  const t = {'r86400':'24H','r604800':'7D','r2592000':'30D'}[$('tpr').value] || 'ANYTIME';
+  const e = {'3':'ASSOC','4':'MIDSENIOR','4,5':'SENIOR<DIR'}[$('ex').value] || 'ANYLEVEL';
+  const where = !ids.length ? 'NOGEO'
+    : ids.length === 1 ? 'GEO' + ids[0] + '<' + nameOf(ids[0]).replace(/[^A-Za-z]/g,'')
+    : ids.length + 'PLACES<' + ids.map(i => nameOf(i).replace(/[^A-Za-z]/g,'').slice(0,6)).join('<');
+  $('mrz1').innerHTML = mark(pad('LJF<' + where + '<' + w));
+  $('mrz2').innerHTML = mark(pad(($('kw').value.trim() || 'ANYROLE') + '<' + e + '<' + t));
+  $('mrzGeo').textContent = !ids.length ? 'no location'
+    : ids.length === 1 ? 'geoId ' + ids[0] : 'f_PP × ' + ids.length;
 }
 
+/* ── shareable state ── */
+let restoring = false;
+function writeState(){
+  if (restoring) return;
+  const s = new URLSearchParams();
+  if ($('kw').value.trim())    s.set('q', $('kw').value.trim());
+  if ($('ex_kw').value.trim()) s.set('x', $('ex_kw').value.trim());
+  if (picked.size)             s.set('g', [...picked].join(','));
+  ['tpr','wt','ex'].forEach(id => { if ($(id).value) s.set(id, $(id).value); });
+  ['ea','al'].forEach(id => { if ($(id).checked) s.set(id,'1'); });
+  history.replaceState(null, '', s.toString() ? '#' + s : location.pathname);
+}
+function readState(){
+  const h = location.hash.replace(/^#/,''); if (!h) return;
+  restoring = true;
+  const s = new URLSearchParams(h);
+  if (s.has('q')) $('kw').value = s.get('q');
+  if (s.has('x')) $('ex_kw').value = s.get('x');
+  if (s.has('g')) {
+    const ids = s.get('g').split(',').filter(id => GEO.some(g => g[1] === id));
+    if (ids.length) picked = new Set(ids);
+  }
+  ['tpr','wt','ex'].forEach(id => { if (s.has(id)) $(id).value = s.get(id); });
+  ['ea','al'].forEach(id => { $(id).checked = s.get(id) === '1'; });
+  restoring = false;
+}
+
+/* ── render ── */
+function renderWhere(){
+  $('where').innerHTML = picked.size
+    ? [...picked].map(id => `<button type="button" data-drop="${id}">${nameOf(id)}</button>`).join('')
+    : '<span class="none">Anywhere — add a country to narrow it.</span>';
+}
 function sync(){
   const u = url();
-  $('urlOut').textContent = u;
   $('go').href = u;
-  mrz();
-  const kw = encodeURIComponent($('kw').value.trim());
-  $('boards').innerHTML = BOARDS(kw).map(([n,href,note]) =>
-    `<a href="${href}" target="_blank" rel="noopener">${n}<em>${note}</em></a>`).join('');
+  $('urlOut').textContent = u;
+  mrz(); renderWhere(); writeState();
+  const q = ATS.map(d => 'site:' + d).join(' OR ');
+  $('atsGo').href = 'https://www.google.com/search?tbs=qdr:m&q=' +
+    encodeURIComponent('(' + q + ') ' + ($('kw').value.trim() || 'engineer') + ' remote');
 }
 
-/* ── geo ────────────────────────────────────────────────── */
-$('geo').innerHTML = GEO.map(([n,id],i) =>
-  `<option value="${id}"${i === 0 ? ' selected' : ''}>${n}</option>`).join('');
-
-function table(f = ''){
-  const q = f.trim().toLowerCase();
-  const rows = GEO.filter(([n,id]) => id && !n.startsWith('No location'))
-    .filter(([n]) => !q || n.toLowerCase().includes(q));
-  $('geoTable').innerHTML = rows.length
-    ? rows.map(([n,id]) => `<tr><td>${n}</td><td class="code">${id}</td>
-        <td><button class="cp" type="button" data-id="${id}">Copy</button></td></tr>`).join('')
-    : `<tr><td colspan="3" style="color:var(--dim-paper)">Nothing matches “${f}”.</td></tr>`;
-}
-$('geoFilter').addEventListener('input', e => table(e.target.value));
-$('geoTable').addEventListener('click', e => {
-  const b = e.target.closest('.cp'); if (!b) return;
-  navigator.clipboard.writeText(b.dataset.id);
-  const o = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1100);
+$('geoAdd').innerHTML = '<option value="">Add a country…</option>' +
+  GEO.map(([n,id]) => `<option value="${id}">${n}</option>`).join('');
+$('geoAdd').addEventListener('change', e => {
+  if (e.target.value) { picked.add(e.target.value); e.target.value = ''; sync(); }
+});
+$('where').addEventListener('click', e => {
+  const b = e.target.closest('button[data-drop]'); if (!b) return;
+  picked.delete(b.dataset.drop); sync();
 });
 
-/* ── chips + presets ────────────────────────────────────── */
-$('kwChips').innerHTML = KW.map((k,i) =>
-  `<button class="chip" type="button" data-i="${i}">${k}</button>`).join('');
+$('kwChips').innerHTML = KW.map(k =>
+  `<button class="chip" type="button" data-k="${k}">${k}</button>`).join('');
 $('kwChips').addEventListener('click', e => {
-  const b = e.target.closest('.chip'); if (!b) return;
-  $('kw').value = KW[b.dataset.i]; sync();
+  const b = e.target.closest('[data-k]'); if (!b) return;
+  $('kw').value = b.dataset.k; sync();
 });
 
-$('presets').innerHTML = PRESETS.map(([n,,note],i) =>
-  `<a href="#builder" data-p="${i}">${n}<em>${note}</em></a>`).join('');
+$('negChips').innerHTML = NEG.map(t =>
+  `<button class="chip" type="button" aria-pressed="false" data-neg="${t}">− ${t}</button>`).join('');
+$('negChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-neg]'); if (!b) return;
+  const cur = $('ex_kw').value.split(',').map(s => s.trim()).filter(Boolean);
+  const i = cur.indexOf(b.dataset.neg);
+  i === -1 ? cur.push(b.dataset.neg) : cur.splice(i,1);
+  b.setAttribute('aria-pressed', String(i === -1));
+  $('ex_kw').value = cur.join(', '); sync();
+});
+
+$('presets').innerHTML = PRESETS.map(([n],i) =>
+  `<button class="chip" type="button" data-p="${i}">${n}</button>`).join('');
 $('presets').addEventListener('click', e => {
-  const a = e.target.closest('a[data-p]'); if (!a) return;
-  e.preventDefault();
-  $('kw').value = PRESETS[a.dataset.p][1];
-  $('jt').value = '';
+  const b = e.target.closest('[data-p]'); if (!b) return;
+  $('kw').value = PRESETS[b.dataset.p][1];
   sync();
-  window.open(url(), '_blank', 'noopener');
+  $('search').scrollIntoView({block:'center'});
 });
 
-/* ── ats ────────────────────────────────────────────────── */
-const sites = ATS.filter(a => a[1] !== '*').map(a => 'site:' + a[1]);
-function atsQ(domain){
-  const site = domain === '*' ? '(' + sites.join(' OR ') + ')' : 'site:' + domain;
-  return [site, $('atsKw').value.trim(), $('atsExtra').value.trim()].filter(Boolean).join(' ');
-}
-function syncAts(){
-  $('atsOut').textContent = atsQ('*');
-  $('atsRow').innerHTML = ATS.map(([n,d]) =>
-    `<a class="btn ${d === '*' ? '' : 'ghost'}" target="_blank" rel="noopener"
-        href="https://www.google.com/search?q=${encodeURIComponent(atsQ(d))}&tbs=qdr:m">${n}</a>`
-  ).join('');
-}
-$('atsChips').innerHTML = ["senior java backend","golang engineer","dotnet c# developer",
-  "angular developer","react frontend","node typescript","python backend","devops sre",
-  "staff engineer"]
-  .map(k => `<button class="chip" type="button" data-a="${k}">${k}</button>`).join('');
-$('atsChips').addEventListener('click', e => {
-  const b = e.target.closest('.chip'); if (!b) return;
-  $('atsKw').value = b.dataset.a; syncAts();
-});
+$('collisionTable').innerHTML = COLLIDE.map(([t,g,n]) =>
+  `<tr><td class="typed">${t}</td><td class="gets">${g}</td>
+   <td>${n ? '<span class="sev">' + n + '</span>' : ''}</td></tr>`).join('');
+$('geoTable').innerHTML = GEO.map(([n,id]) =>
+  `<tr><td>${n}</td><td class="code">${id}</td></tr>`).join('');
+$('boards').innerHTML = BOARDS.map(([n,h,note]) =>
+  `<a href="${h}" target="_blank" rel="noopener">${n}<em>${note}</em></a>`).join('');
 
-/* ── misc ───────────────────────────────────────────────── */
-$('copy').addEventListener('click', e => {
-  navigator.clipboard.writeText(url());
+$('share').addEventListener('click', e => {
+  writeState();
+  navigator.clipboard.writeText(location.href);
   const b = e.currentTarget, o = b.textContent;
-  b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1200);
+  b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1300);
 });
-['kw','geo','tpr','jt','wt','ex','ea','al','sort'].forEach(id => {
+
+['kw','ex_kw','tpr','wt','ex','ea','al'].forEach(id => {
   $(id).addEventListener('input', sync);
   $(id).addEventListener('change', sync);
 });
-['atsKw','atsExtra'].forEach(id => $(id).addEventListener('input', syncAts));
+/* a pasted link while already here is a same-document navigation */
+addEventListener('hashchange', () => { readState(); sync(); });
 
-$('snippet').textContent = SNIPPET;
-table(); sync(); syncAts();
+readState(); sync();
 </script>
 </body>
 </html>

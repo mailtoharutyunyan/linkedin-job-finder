@@ -21,16 +21,38 @@ don't know about it.
 ### Trap 1 — a country name in the location box resolves to the wrong country
 
 Pass `location=Armenia` as text and LinkedIn matches **Armenia, Quindío — a city in Colombia.**
+Its own location box says so, while the page title still reads "Jobs in Armenia."
 
-Measured: **1,432 results, every one of them Colombia or Latin America.** The reasonable conclusion
+Measured: **1,385 results, every one of them Colombia or Latin America.** The reasonable conclusion
 is that no remote work exists for you, and you stop looking. Pass the correct numeric country id
 instead and the same search returns **83 genuinely Armenia-remote roles.**
 
-The same collision exists for **Georgia** — the country versus the US state. Almost certainly for
-others too.
+I then tested 39 country names to see how widespread this is. **Not one of the 39 resolved to the
+plain country.** Nine land on a different country, in several cases a different continent:
 
-Fix: always pass `geoId=<number>`, never `location=<text>`. The tool ships 48 verified ids and a
-console snippet for looking up any location LinkedIn knows about.
+| You type | LinkedIn searches | |
+|---|---|---|
+| Armenia | Armenia, Quindío, **Colombia** | confirmed end to end |
+| Georgia | Georgia, **United States** | confirmed end to end |
+| Lebanon | Lebanon, Tennessee, **United States** | |
+| Cuba | Cubatão, São Paulo, **Brazil** | |
+| Malta | Malta, Illinois, **United States** | |
+| Turkey | Turkey, North Carolina, **United States** | |
+| Guinea | National Capital District, **Papua New Guinea** | |
+| Liberia | Liberia, Guanacaste, **Costa Rica** | |
+| Niger | Lagos State, **Nigeria** | |
+
+The other thirty silently narrow you to one city or region instead of jumping countries — Poland
+becomes Mazowieckie, Ukraine becomes Kyiv City, India becomes Maharashtra, Ireland becomes County
+Dublin, Brazil becomes São Paulo. Less alarming, equally lossy: every role outside that region
+vanishes and nothing tells you.
+
+Two are verified end to end in the live job search. `Georgia` resolved to "Georgia, United States"
+and returned 9,645 results with nothing in Tbilisi. The remaining seven are the resolver's first
+choice rather than a click-through I checked individually — stated plainly rather than dressed up.
+
+Fix: always pass `geoId=<number>`, never `location=<text>`. The tool ships 48 verified ids, flags
+the colliding names in its own picker, and includes a console snippet for looking up anything else.
 
 ### Trap 2 — "Remote" means remote *within that country*
 
@@ -74,15 +96,31 @@ Other patterns that work: `B2B`, `independent contractor`, `self-employed`, `inv
 
 ---
 
-## What's in the tool
+## What it does that LinkedIn doesn't
 
-| | |
-|---|---|
-| **Search builder** | Keywords, location, recency, job type, workplace type, experience, Easy Apply, under-10-applicants, sort by newest. Live URL preview, copy, open. |
-| **Contractor presets** | Six one-click searches for cross-border / no-permit arrangements. |
-| **48 verified geoIds** | Filterable, copyable table. Plus a console snippet to look up any location. |
-| **ATS direct search** | Builds Google queries across Lever, Greenhouse, Ashby, Workable, Teamtailor, Recruitee, SmartRecruiters — often finds roles before aggregators index them. |
-| **Board launcher** | Ten free boards, keywords carried across where supported. |
+**Searches many countries in one go.** LinkedIn's UI accepts exactly one location. If you can legally
+work in six countries, that's six separate searches you have to remember to re-run. The `f_PP`
+parameter takes a comma-separated list and works fine — it just isn't exposed anywhere in the
+interface. Pick as many as you like; one search covers them all.
+
+**Uses ids, never names.** So you can't land in the wrong hemisphere.
+
+**Hides jobs you can't take.** One field turns `clearance, W2` into
+`NOT clearance NOT W2`, so the postings that would waste your time never show up.
+
+**Remembers the search.** Everything is written to the page's own address. Bookmark it and your setup
+comes back; send the link and someone else gets your setup, not a blank form.
+
+**Skips the boards.** One button searches Lever, Greenhouse, Ashby, Workable, Teamtailor, Recruitee
+and SmartRecruiters at once — jobs land there before aggregators index them.
+
+### Deliberately kept simple
+
+Two fields and one button. Everything else is behind a single **Refine** disclosure, closed by
+default, with defaults already set to remote, past week, mid-senior, newest first.
+
+There is **no Contract job-type filter**, on purpose — see finding 2 below. It cut results from 83 to
+1 because companies tag international contractor roles as Full-time.
 
 ---
 
